@@ -28,6 +28,7 @@ contract MultisigWallet is Ownable, AccessControl {
         _;
     }
     
+    using Strings for uint;
     address private ERC20Address;
     enum transferType { ETH, Token }
     uint public transactionId;
@@ -84,8 +85,8 @@ contract MultisigWallet is Ownable, AccessControl {
 
     function revokeTransaction(uint _transactionId) public onlySigners {
         Transactions storage request = transactions[_transactionId];
-        require(!request._voter[_msgSender()], "Already Voted!");
-        request._revoke += 1;
+        require(request._voter[_msgSender()], "You haven't voted yet");
+        request._approve -= 1;
         request._voter[_msgSender()] = true;
     }
 
@@ -108,15 +109,13 @@ contract MultisigWallet is Ownable, AccessControl {
     }
 
     function viewPendingTransactions() public view returns(string memory) {
-        string memory pendingTransactions;
+        bytes memory pendingTransactions;
         for (uint i = 0; i < transactions.length; i++) {
-            bytes memory _index = bytes(Strings.toString(i));
-            bytes memory _description = bytes(transactions[i]._description);
-            if(!transactions[i]._complete) {
-                pendingTransactions=string(bytes.concat(bytes(pendingTransactions),"[",_index,"]=>",_description));
+            if (!transactions[i]._complete) {
+                pendingTransactions = abi.encodePacked(pendingTransactions, '\n', 'Transaction ID:', i.toString(), 'Reason:', transactions[i]._description, '');
             }
         }
-        return pendingTransactions;
+        return string(pendingTransactions);
     }
 
 }

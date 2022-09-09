@@ -47,13 +47,13 @@ describe("MultiSig Wallet", () => {
 
     it("Should approve transactions", async () => {
         const { owner, acct1, acct2, acct3, acct4, multisigwallet } = await loadFixture(testFixture);
-        //await multisigwallet.connect(acct1).approveTransaction(0);
+        await multisigwallet.connect(acct1).approveTransaction(0);
         await multisigwallet.connect(acct2).approveTransaction(0);
         await multisigwallet.connect(acct3).approveTransaction(0);
         await multisigwallet.approveTransaction(0);
         const data = await multisigwallet.transactions(0);
-        expect(data[3]).to.be.equal(3);
-
+        expect(data[3]).to.be.equal(4);
+        
         await expect(multisigwallet.connect(acct4).approveTransaction(0)).to.be.reverted;
     })
 
@@ -61,7 +61,7 @@ describe("MultiSig Wallet", () => {
         const { owner, acct1, acct2, acct4, multisigwallet } = await loadFixture(testFixture);
         await multisigwallet.connect(acct1).revokeTransaction(0);
         const data = await multisigwallet.transactions(0);
-        expect(data[4]).to.be.equal(1);
+        expect(data[3]).to.be.equal(3);
 
         await expect(multisigwallet.connect(acct4).revokeTransaction(0)).to.be.reverted;
     })
