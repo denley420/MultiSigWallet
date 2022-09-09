@@ -19,7 +19,7 @@ describe("MultiSig Wallet", () => {
         MultisigWallet = await ethers.getContractFactory("MultisigWallet");
         multisigwallet = await MultisigWallet.deploy({value: ethers.utils.parseEther("5")});
         Erc20dummy = await ethers.getContractFactory("ERC20Dummy");
-        erc20dummy = await Erc20dummy.deploy();
+        erc20dummy = await Erc20dummy.deploy(multisigwallet.address);
         return { owner, acct1, acct2, acct3, acct4, multisigwallet, erc20dummy };
       }
 
@@ -87,12 +87,19 @@ describe("MultiSig Wallet", () => {
 
     it("Should execute transactions ERC20", async () => {
         const { owner, acct1, acct2, acct3, multisigwallet, erc20dummy } = await loadFixture(testFixture);
-        await erc20dummy.mint(multisigwallet.address, 10);
+        // await erc20dummy.mint(multisigwallet.address, 10);
         await multisigwallet.connect(acct1).approveTransaction(1);
         await multisigwallet.connect(acct2).approveTransaction(1);
         await multisigwallet.connect(acct3).approveTransaction(1);
         await multisigwallet.executeTransactions(1);
         expect(await erc20dummy.balanceOf(acct1.address)).to.equal(1);
+    })
+
+    it("Should not execute transactions ERC20 and ETH", async () => {
+        const { owner, acct1, acct2, acct3, multisigwallet, erc20dummy } = await loadFixture(testFixture);
+        await multisigwallet.createTransanctionERC20(acct1.address, 1, erc20dummy.address);
+        await multisigwallet.createTransactionETH(acct1.address, 1);
+        await expect (multisigwallet.executeTransactions(2)).to.be.reverted;
     })
 
 })
