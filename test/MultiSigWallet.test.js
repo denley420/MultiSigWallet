@@ -35,14 +35,14 @@ describe("MultiSig Wallet", () => {
 
     it("Should create ETH transactions", async () => {
         const { owner, acct1, acct2, acct3, acct4, multisigwallet } = await loadFixture(testFixture);
-        await multisigwallet.createTransactionETH(acct1.address, 1);
-        await expect(multisigwallet.connect(acct4).createTransactionETH(acct1.address, 1)).to.be.reverted;
+        await multisigwallet.createTransactionETH("ETH Transactions", acct1.address, 1);
+        await expect(multisigwallet.connect(acct4).createTransactionETH("ETH Transactions", acct1.address, 1)).to.be.reverted;
     })
 
     it("Should create ERC20 transactions", async () => {
         const { owner, acct1, acct2, acct4, multisigwallet, erc20dummy } = await loadFixture(testFixture);
-        await multisigwallet.createTransanctionERC20(acct1.address, 1, erc20dummy.address);
-        await expect(multisigwallet.connect(acct4).createTransactionETH(acct1.address, 1)).to.be.reverted;
+        await multisigwallet.createTransanctionERC20("ERC20 Transactions", acct1.address, 1, erc20dummy.address);
+        await expect(multisigwallet.connect(acct4).createTransanctionERC20("ERC20 Transactions", acct1.address, 1)).to.be.reverted;
     })
 
     it("Should approve transactions", async () => {
@@ -51,8 +51,8 @@ describe("MultiSig Wallet", () => {
         await multisigwallet.connect(acct2).approveTransaction(0);
         await multisigwallet.connect(acct3).approveTransaction(0);
         await multisigwallet.approveTransaction(0);
-        const data = await multisigwallet.transact(0);
-        expect(data[2]).to.be.equal(3);
+        const data = await multisigwallet.transactions(0);
+        expect(data[3]).to.be.equal(3);
 
         await expect(multisigwallet.connect(acct4).approveTransaction(0)).to.be.reverted;
     })
@@ -60,8 +60,8 @@ describe("MultiSig Wallet", () => {
     it("Should revoke transactions", async () => {
         const { owner, acct1, acct2, acct4, multisigwallet } = await loadFixture(testFixture);
         await multisigwallet.connect(acct1).revokeTransaction(0);
-        const data = await multisigwallet.transact(0);
-        expect(data[3]).to.be.equal(1);
+        const data = await multisigwallet.transactions(0);
+        expect(data[4]).to.be.equal(1);
 
         await expect(multisigwallet.connect(acct4).revokeTransaction(0)).to.be.reverted;
     })
@@ -97,9 +97,14 @@ describe("MultiSig Wallet", () => {
 
     it("Should not execute transactions ERC20 and ETH", async () => {
         const { owner, acct1, acct2, acct3, multisigwallet, erc20dummy } = await loadFixture(testFixture);
-        await multisigwallet.createTransanctionERC20(acct1.address, 1, erc20dummy.address);
-        await multisigwallet.createTransactionETH(acct1.address, 1);
+        await multisigwallet.createTransanctionERC20("ERC20 Transactions", acct1.address, 1, erc20dummy.address);
+        await multisigwallet.createTransactionETH("ETH Transactions", acct1.address, 1);
         await expect (multisigwallet.executeTransactions(2)).to.be.reverted;
+    })
+
+    it("Should view pending transactions", async () => {
+        const { owner, acct1, acct2, acct3, multisigwallet, erc20dummy } = await loadFixture(testFixture);
+        await multisigwallet.viewPendingTransactions();
     })
 
 })
