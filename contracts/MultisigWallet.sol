@@ -104,6 +104,7 @@ contract MultisigWallet is Ownable, AccessControl {
         } else {
             IERC20(ERC20Address).transfer(request._receiver, request._amount);
         }
+        request._complete = true;
     }
 
     function viewPendingTransactions() public view returns(string memory) {
